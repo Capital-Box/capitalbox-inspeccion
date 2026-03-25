@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inspección Autoelevador – Capital Box</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #e22028;
+    --orange: #ef8a1c;
+    --dark: #1a1a1a;
+    --border: #d0d0d0;
+    --ok: #2a7d4f;
+    --nok: #c0392b;
+    --nc: #5a6472;
+    --ok-bg: #eaf7ef;
+    --nok-bg: #fdecea;
+    --nc-bg: #f0f2f4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: #ebebeb;
+    color: var(--dark);
+    min-height: 100vh;
+    padding: 32px 16px 64px;
+  }
+
+  .container { max-width: 820px; margin: 0 auto; }
+
+  /* HEADER */
+  .header {
+    background: var(--dark);
+    color: white;
+    padding: 24px 32px;
+    border-top: 5px solid var(--red);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .empresa-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #999; font-family: 'IBM Plex Mono', monospace; }
+  .empresa-name { font-size: 24px; font-weight: 700; color: white; }
+  .empresa-name span { color: var(--red); }
+  .header-divider { width: 1px; height: 44px; background: #444; margin: 0 8px; }
+  .doc-title { font-size: 13px; color: #ccc; line-height: 1.5; }
+  .doc-title strong { display: block; font-size: 15px; font-weight: 700; color: white; }
+
+  /* CONFIG BANNER */
+  .config-banner {
+    background: #fff3cd;
+    border: 1.5px solid #f0c040;
+    padding: 12px 20px;
+    font-size: 12.5px;
+    color: #7a5800;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0;
+  }
+  .config-banner.hidden { display: none; }
+  .config-banner input {
+    flex: 1;
+    border: 1.5px solid #f0c040;
+    padding: 6px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    border-radius: 3px;
+    outline: none;
+    background: white;
+    color: var(--dark);
+  }
+  .config-banner button {
+    padding: 6px 14px;
+    background: #f0c040;
+    border: none;
+    font-family: 'IBM Plex Sans', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 3px;
+    color: #7a5800;
+  }
+  .config-ready {
+    background: #eaf7ef;
+    border: 1.5px solid #2a7d4f;
+    padding: 10px 20px;
+    font-size: 12px;
+    color: #1a5c38;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0;
+  }
+  .config-ready.hidden { display: none; }
+  .config-ready a { color: #1a5c38; font-size: 11px; cursor: pointer; margin-left: auto; text-decoration: underline; }
+
+  /* META */
+  .meta-bar {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 20px 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 16px 24px;
+    margin-bottom: 24px;
+  }
+
+  .meta-field label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #888; font-family: 'IBM Plex Mono', monospace; margin-bottom: 6px; }
+  .meta-field input { width: 100%; border: none; border-bottom: 2px solid var(--border); padding: 6px 0; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; color: var(--dark); background: transparent; transition: border-color 0.2s; outline: none; }
+  .meta-field input:focus { border-bottom-color: var(--red); }
+
+  /* TABLE */
+  .checklist { width: 100%; background: white; border: 1px solid var(--border); border-collapse: collapse; margin-bottom: 24px; font-size: 13.5px; }
+  .checklist thead tr { background: var(--dark); color: white; }
+  .checklist thead th { padding: 11px 14px; text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-family: 'IBM Plex Mono', monospace; }
+  .checklist thead th:nth-child(2) { width: 160px; text-align: center; }
+  .checklist thead th:nth-child(3) { width: 220px; }
+  .checklist tbody tr { border-bottom: 1px solid #ececec; transition: background 0.15s; }
+  .checklist tbody tr:last-child { border-bottom: none; }
+  .checklist tbody tr:hover { background: #fafafa; }
+  .checklist td { padding: 10px 14px; vertical-align: middle; }
+  .item-name { font-size: 13.5px; color: var(--dark); line-height: 1.4; }
+
+  /* CONDICION */
+  .cond-group { display: flex; gap: 6px; justify-content: center; }
+  .cond-btn { display: none; }
+  .cond-label { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 28px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; letter-spacing: 0.5px; user-select: none; }
+
+  .cond-label.ok-label { border-color: #bde0cb; color: var(--ok); background: var(--ok-bg); }
+  .cond-btn.ok-btn:checked + .ok-label { background: var(--ok); color: white; border-color: var(--ok); }
+  .cond-label.nok-label { border-color: #f5c6c4; color: var(--nok); background: var(--nok-bg); }
+  .cond-btn.nok-btn:checked + .nok-label { background: var(--nok); color: white; border-color: var(--nok); }
+  .cond-label.nc-label { border-color: #cdd0d5; color: var(--nc); background: var(--nc-bg); }
+  .cond-btn.nc-btn:checked + .nc-label { background: var(--nc); color: white; border-color: var(--nc); }
+
+  .obs-input { width: 100%; border: none; border-bottom: 1.5px solid #e0e0e0; padding: 5px 0; font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px; color: var(--dark); background: transparent; outline: none; transition: border-color 0.2s; }
+  .obs-input:focus { border-bottom-color: var(--orange); }
+
+  .checklist tbody tr.has-nok { background: #fff8f8; }
+
+  /* OTROS */
+  .otros-block { background: white; border: 1px solid var(--border); padding: 16px 20px; margin-bottom: 24px; }
+  .otros-block label { display: block; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #888; font-family: 'IBM Plex Mono', monospace; margin-bottom: 10px; }
+  .otros-block textarea { width: 100%; border: 1.5px solid #e0e0e0; padding: 10px 12px; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; color: var(--dark); background: #fafafa; outline: none; resize: vertical; min-height: 70px; border-radius: 4px; transition: border-color 0.2s; }
+  .otros-block textarea:focus { border-color: var(--orange); }
+
+  /* FIRMA */
+  .firma-block { background: white; border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: flex-end; gap: 32px; }
+  .firma-line { flex: 1; }
+  .firma-line label { display: block; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #888; font-family: 'IBM Plex Mono', monospace; margin-bottom: 30px; }
+  .firma-line .underline { border-top: 2px solid var(--dark); width: 100%; }
+
+  /* REFS */
+  .ref-block { background: #1a1a1a; color: white; padding: 16px 24px; margin-bottom: 32px; display: flex; gap: 32px; flex-wrap: wrap; }
+  .ref-item { display: flex; align-items: flex-start; gap: 12px; }
+  .ref-badge { font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 12px; padding: 3px 8px; border-radius: 3px; flex-shrink: 0; margin-top: 2px; }
+  .ref-badge.ok { background: var(--ok); color: white; }
+  .ref-badge.nok { background: var(--nok); color: white; }
+  .ref-badge.nc { background: var(--nc); color: white; }
+  .ref-text { font-size: 12px; color: #ccc; line-height: 1.5; }
+
+  /* SUBMIT */
+  .submit-area { display: flex; justify-content: flex-end; gap: 12px; }
+  .btn-reset { padding: 12px 28px; border: 2px solid var(--border); background: white; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 600; color: #666; cursor: pointer; border-radius: 4px; transition: all 0.2s; }
+  .btn-reset:hover { border-color: #999; color: var(--dark); }
+  .btn-submit { padding: 12px 36px; background: var(--red); color: white; border: none; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 4px; transition: background 0.2s; }
+  .btn-submit:hover:not(:disabled) { background: #c41c23; }
+  .btn-submit:disabled { background: #aaa; cursor: not-allowed; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    padding: 14px 28px; border-radius: 6px; font-size: 14px; font-weight: 600;
+    font-family: 'IBM Plex Sans', sans-serif; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999;
+    display: flex; align-items: center; gap: 10px; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+  .toast.success { background: #2a7d4f; color: white; }
+  .toast.error { background: #c0392b; color: white; }
+  .toast.info { background: var(--dark); color: white; }
+
+  @media (max-width: 600px) {
+    .meta-bar { grid-template-columns: 1fr 1fr; }
+    .ref-block { flex-direction: column; gap: 16px; }
+    .header { padding: 20px; flex-wrap: wrap; }
+    .submit-area { flex-direction: column; }
+    .btn-reset, .btn-submit { width: 100%; text-align: center; }
+    .firma-block { flex-direction: column; gap: 24px; }
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .config-banner, .config-ready, .submit-area, .toast { display: none !important; }
+    .container { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div>
+      <div class="empresa-label">Empresa</div>
+      <div class="empresa-name">CAPITAL <span>BOX</span></div>
+    </div>
+    <div class="header-divider"></div>
+    <div class="doc-title">
+      <strong>Inspección de Autoelevador</strong>
+      Checklist de condiciones de seguridad
+    </div>
+  </div>
+
+  <!-- CONFIG: pegar URL del Apps Script -->
+  <div class="config-banner" id="configBanner">
+    <span>⚙️ Pegá la URL de tu Apps Script para activar el guardado:</span>
+    <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/…/exec">
+    <button onclick="guardarUrl()">Guardar</button>
+  </div>
+  <div class="config-ready hidden" id="configReady">
+    ✅ Conectado a Google Sheets — las respuestas se guardan automáticamente.
+    <a onclick="cambiarUrl()">Cambiar URL</a>
+  </div>
+
+  <!-- META -->
+  <div class="meta-bar">
+    <div class="meta-field">
+      <label>Autoelevador N°</label>
+      <input id="meta_autoelevador" type="text" placeholder="Ej: AE-003">
+    </div>
+    <div class="meta-field">
+      <label>Cant. de Hs.</label>
+      <input id="meta_horas" type="text" placeholder="Ej: 1.250 hs">
+    </div>
+    <div class="meta-field">
+      <label>Frecuencia</label>
+      <input id="meta_frecuencia" type="text" placeholder="Ej: Mensual">
+    </div>
+    <div class="meta-field">
+      <label>Fecha Insp.</label>
+      <input id="meta_fecha" type="date">
+    </div>
+    <div class="meta-field" style="grid-column: span 2;">
+      <label>Inspeccionó</label>
+      <input id="meta_inspector" type="text" placeholder="Nombre completo">
+    </div>
+    <div class="meta-field" style="grid-column: span 2;">
+      <label>Sector / Área</label>
+      <input id="meta_sector" type="text" placeholder="Depósito, logística, etc.">
+    </div>
+  </div>
+
+  <table class="checklist">
+    <thead>
+      <tr>
+        <th>Elemento Evaluado</th>
+        <th>Condición</th>
+        <th>Observaciones / Acc. correctivas</th>
+      </tr>
+    </thead>
+    <tbody id="checklist-body"></tbody>
+  </table>
+
+  <div class="otros-block">
+    <label>Otros</label>
+    <textarea id="otros" placeholder="Observaciones adicionales…"></textarea>
+  </div>
+
+  <div class="firma-block">
+    <div class="firma-line">
+      <label>Firma del Inspector</label>
+      <div class="underline"></div>
+    </div>
+    <div class="firma-line">
+      <label>Aclaración</label>
+      <div class="underline"></div>
+    </div>
+    <div class="firma-line">
+      <label>Fecha</label>
+      <div class="underline"></div>
+    </div>
+  </div>
+
+  <div class="ref-block">
+    <div class="ref-item">
+      <span class="ref-badge ok">OK</span>
+      <span class="ref-text">Condición estándar. El ítem cumple con las condiciones de seguridad necesarias.</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-badge nok">NOK</span>
+      <span class="ref-text">Desviación de la condición estándar. No cumple. Aclarar acciones correctivas.</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-badge nc">NC</span>
+      <span class="ref-text">No corresponde. El equipo no posee este ítem en su diseño.</span>
+    </div>
+  </div>
+
+  <div class="submit-area">
+    <button class="btn-reset" onclick="resetForm()">Limpiar</button>
+    <button class="btn-submit" id="btnSubmit" onclick="enviarFormulario()">Enviar a Google Sheets</button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SCRIPT_URL_KEY = "capitalbox_script_url";
+
+const items = [
+  "El conductor posee carnet",
+  "Espejo retrovisor",
+  "Estado del volante",
+  "Bocina",
+  "Estado del tablero",
+  "Estado del asiento",
+  "Cinturón de seguridad",
+  "Estado de las pedaleras",
+  "Estado de comandos",
+  "Estado de la jaula",
+  "Freno de mano y de pie",
+  "Matafuegos",
+  "Luces delanteras",
+  "Luces traseras",
+  "Luces de stop",
+  "Alarma acústica / luz de retroceso",
+  "Baliza superior",
+  "Estado de la torre",
+  "Estado de las uñas, fijación de las uñas/horquilla",
+  "Estado de baterías y cables",
+  "Estado de las cubiertas (banda de rodaje, presión, desgaste)",
+  "Estado de frenos",
+  "Sistema de dirección y transmisión",
+  "Regulación del embrague",
+  "Inexistencia de fugas de fluidos en el sistema hidráulico, mangueras, conexiones",
+  "Pintura en general",
+  "Combustión",
+  "Engrase en general, niveles de aceite",
+];
+
+// Render tabla
+const tbody = document.getElementById('checklist-body');
+items.forEach((item, i) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="item-name">${item}</td>
+    <td>
+      <div class="cond-group">
+        <input class="cond-btn ok-btn" type="radio" name="cond_${i}" id="ok_${i}" value="OK">
+        <label class="cond-label ok-label" for="ok_${i}">OK</label>
+        <input class="cond-btn nok-btn" type="radio" name="cond_${i}" id="nok_${i}" value="NOK">
+        <label class="cond-label nok-label" for="nok_${i}">NOK</label>
+        <input class="cond-btn nc-btn" type="radio" name="cond_${i}" id="nc_${i}" value="NC">
+        <label class="cond-label nc-label" for="nc_${i}">NC</label>
+      </div>
+    </td>
+    <td><input class="obs-input" type="text" data-index="${i}" placeholder="—"></td>
+  `;
+  tr.querySelectorAll('input[type=radio]').forEach(r => {
+    r.addEventListener('change', () => tr.classList.toggle('has-nok', r.value === 'NOK' && r.checked));
+  });
+  tbody.appendChild(tr);
+});
+
+// Config URL
+function initConfig() {
+  const url = localStorage.getItem(SCRIPT_URL_KEY);
+  if (url) {
+    document.getElementById('configBanner').classList.add('hidden');
+    document.getElementById('configReady').classList.remove('hidden');
+  }
+}
+
+function guardarUrl() {
+  const url = document.getElementById('scriptUrlInput').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    showToast('URL inválida. Debe ser de script.google.com', 'error');
+    return;
+  }
+  localStorage.setItem(SCRIPT_URL_KEY, url);
+  document.getElementById('configBanner').classList.add('hidden');
+  document.getElementById('configReady').classList.remove('hidden');
+  showToast('✅ URL guardada correctamente', 'success');
+}
+
+function cambiarUrl() {
+  localStorage.removeItem(SCRIPT_URL_KEY);
+  document.getElementById('configBanner').classList.remove('hidden');
+  document.getElementById('configReady').classList.add('hidden');
+}
+
+// Recolectar datos
+function recolectarDatos() {
+  const meta = {
+    autoelevador: document.getElementById('meta_autoelevador').value,
+    horas: document.getElementById('meta_horas').value,
+    frecuencia: document.getElementById('meta_frecuencia').value,
+    fecha: document.getElementById('meta_fecha').value,
+    inspector: document.getElementById('meta_inspector').value,
+    sector: document.getElementById('meta_sector').value,
+  };
+
+  const itemsData = items.map((nombre, i) => {
+    const checked = document.querySelector(`input[name="cond_${i}"]:checked`);
+    const obs = document.querySelector(`.obs-input[data-index="${i}"]`);
+    return {
+      nombre,
+      condicion: checked ? checked.value : "",
+      observacion: obs ? obs.value : "",
+    };
+  });
+
+  return {
+    meta,
+    items: itemsData,
+    otros: document.getElementById('otros').value,
+    firma: "",
+  };
+}
+
+// Enviar
+async function enviarFormulario() {
+  const scriptUrl = localStorage.getItem(SCRIPT_URL_KEY);
+  if (!scriptUrl) {
+    showToast('⚙️ Primero configurá la URL del Apps Script', 'info');
+    return;
+  }
+
+  const data = recolectarDatos();
+
+  // Validaciones básicas
+  if (!data.meta.autoelevador) { showToast('Completá el número de autoelevador', 'error'); return; }
+  if (!data.meta.inspector) { showToast('Completá el nombre del inspector', 'error'); return; }
+  if (!data.meta.fecha) { showToast('Completá la fecha de inspección', 'error'); return; }
+
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+
+  try {
+    await fetch(scriptUrl, {
+      method: 'POST',
+      mode: 'no-cors', // Apps Script requiere esto
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    // no-cors no devuelve respuesta legible, asumimos éxito si no hay error
+    showToast('✅ Inspección guardada en Google Sheets', 'success');
+    setTimeout(() => {
+      if (confirm('¿Limpiar el formulario para una nueva inspección?')) resetForm();
+    }, 1500);
+
+  } catch (err) {
+    showToast('❌ Error al enviar. Verificá la URL del script.', 'error');
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Enviar a Google Sheets';
+  }
+}
+
+function resetForm() {
+  document.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  document.querySelectorAll('.obs-input').forEach(i => i.value = '');
+  ['meta_autoelevador','meta_horas','meta_frecuencia','meta_fecha','meta_inspector','meta_sector'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('otros').value = '';
+  document.querySelectorAll('tr.has-nok').forEach(tr => tr.classList.remove('has-nok'));
+}
+
+// Toast
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+initConfig();
+</script>
+</body>
+</html>
